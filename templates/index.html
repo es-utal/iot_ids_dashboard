@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IoT-IDS | Intrusion Detection Dashboard</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">&#9737;</div>
+      <div>
+        <div class="brand-title">IoT-IDS</div>
+        <div class="brand-subtitle">Threat Detection Console</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active" data-tab="batch">
+        <span class="nav-icon">&#8801;</span> Batch Analysis
+      </button>
+      <button class="nav-item" data-tab="live">
+        <span class="nav-icon">&#9679;</span> Live Simulation
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="status-row">
+        <span class="status-dot" id="modelStatusDot"></span>
+        <span id="modelStatusText">Checking model...</span>
+      </div>
+      <div class="model-meta" id="modelMeta">--</div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ============ BATCH ANALYSIS TAB ============ -->
+    <section class="tab-panel active" id="tab-batch">
+      <header class="panel-header">
+        <h1>Batch Analysis</h1>
+        <p>Upload a CSV or Parquet capture and score every flow in one pass.</p>
+      </header>
+
+      <div class="card upload-card">
+        <div class="dropzone" id="batchDropzone">
+          <input type="file" id="batchFileInput" accept=".csv,.parquet" hidden>
+          <div class="dropzone-icon">&#8593;</div>
+          <div class="dropzone-text">
+            <strong>Click to browse</strong> or drag a .csv / .parquet file here
+          </div>
+          <div class="dropzone-file" id="batchFileName">No file selected</div>
+        </div>
+        <button class="btn btn-primary" id="batchAnalyzeBtn" disabled>Analyze Traffic</button>
+      </div>
+
+      <div id="batchError" class="alert alert-error hidden"></div>
+
+      <div id="batchResults" class="hidden">
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Flows</div>
+            <div class="stat-value" id="statTotal">0</div>
+          </div>
+          <div class="stat-card stat-benign">
+            <div class="stat-label">Benign</div>
+            <div class="stat-value" id="statBenign">0</div>
+          </div>
+          <div class="stat-card stat-attack">
+            <div class="stat-label">Attacks Detected</div>
+            <div class="stat-value" id="statAttacks">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Attack Ratio</div>
+            <div class="stat-value" id="statRatio">0%</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3 class="card-title">Class Distribution</h3>
+            <div id="chartContainer" class="chart-container"></div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">Detection Preview</h3>
+            <div class="table-wrap">
+              <table class="data-table" id="previewTable">
+                <thead>
+                  <tr><th>Row</th><th>Prediction</th><th>Confidence</th></tr>
+                </thead>
+                <tbody id="previewTbody"></tbody>
+              </table>
+            </div>
+            <div class="table-note" id="previewNote">Click a row to see why it was flagged.</div>
+          </div>
+        </div>
+
+        <div class="card" id="batchExplainCard">
+          <h3 class="card-title">Why Was This Flagged? <span class="explain-target" id="batchExplainTarget"></span></h3>
+          <div class="explain-sentence" id="batchExplainSentence">Click a row in the Detection Preview table above.</div>
+          <div class="explain-bars" id="batchExplainBars"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ LIVE SIMULATION TAB ============ -->
+    <section class="tab-panel" id="tab-live">
+      <header class="panel-header">
+        <h1>Live Attack Simulation</h1>
+        <p>Stream random rows from an uploaded capture and watch the model classify traffic in real time.</p>
+      </header>
+
+      <div class="card upload-card">
+        <div class="dropzone" id="liveDropzone">
+          <input type="file" id="liveFileInput" accept=".csv" hidden>
+          <div class="dropzone-icon">&#8593;</div>
+          <div class="dropzone-text">
+            <strong>Click to browse</strong> or drag a .csv file to use as the simulated stream
+          </div>
+          <div class="dropzone-file" id="liveFileName">No file selected</div>
+        </div>
+
+        <div class="live-controls">
+          <label class="speed-label">
+            Interval (sec)
+            <input type="number" id="liveInterval" value="1.5" min="0.2" max="10" step="0.1">
+          </label>
+          <button class="btn btn-primary" id="liveStartBtn" disabled>Start Stream</button>
+          <button class="btn btn-danger" id="liveStopBtn" disabled>Stop</button>
+        </div>
+      </div>
+
+      <div id="liveError" class="alert alert-error hidden"></div>
+
+      <div id="liveResults" class="hidden">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Packets Processed</div>
+            <div class="stat-value" id="liveTotal">0</div>
+          </div>
+          <div class="stat-card stat-benign">
+            <div class="stat-label">Benign</div>
+            <div class="stat-value" id="liveBenign">0</div>
+          </div>
+          <div class="stat-card stat-attack">
+            <div class="stat-label">Attacks</div>
+            <div class="stat-value" id="liveAttacks">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Stream Status</div>
+            <div class="stat-value stream-status" id="streamStatusValue">Idle</div>
+          </div>
+        </div>
+
+        <div class="card" id="liveExplainCard">
+          <h3 class="card-title">Latest Detection — Why Flagged? <span class="explain-target" id="liveExplainTarget"></span></h3>
+          <div class="explain-sentence" id="liveExplainSentence">Start the stream to see live explanations here.</div>
+          <div class="explain-bars" id="liveExplainBars"></div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Live Feed</h3>
+          <div class="table-wrap live-log-wrap">
+            <table class="data-table">
+              <thead>
+                <tr><th>Time</th><th>Row #</th><th>Verdict</th><th>Confidence</th></tr>
+              </thead>
+              <tbody id="liveLogTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
