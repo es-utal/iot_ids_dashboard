@@ -1,6 +1,3 @@
-// ============================================================
-// IoT-IDS Dashboard — frontend logic (vanilla JS, no dependencies)
-// ============================================================
 
 const CLASS_COLORS = {
   Benign: "#34d399",
@@ -11,7 +8,6 @@ const CLASS_COLORS = {
   Recon:  "#a78bfa",
 };
 
-// ---------------- Tab switching ----------------
 document.querySelectorAll(".nav-item").forEach((btn) => {
   btn.addEventListener("click", () => {
     document.querySelectorAll(".nav-item").forEach((b) => b.classList.remove("active"));
@@ -21,7 +17,6 @@ document.querySelectorAll(".nav-item").forEach((btn) => {
   });
 });
 
-// ---------------- Health check ----------------
 async function checkHealth() {
   const dot = document.getElementById("modelStatusDot");
   const text = document.getElementById("modelStatusText");
@@ -45,7 +40,6 @@ async function checkHealth() {
 }
 checkHealth();
 
-// ---------------- Generic dropzone wiring ----------------
 function wireDropzone(zoneId, inputId, nameId, onFile) {
   const zone = document.getElementById(zoneId);
   const input = document.getElementById(inputId);
@@ -85,9 +79,6 @@ function hideError(elId) {
   document.getElementById(elId).classList.add("hidden");
 }
 
-// ---------------- SHAP explanation rendering (shared by both tabs) ----------------
-// topFeatures: [{feature, value, contribution, direction}], sorted by |contribution| desc.
-// direction "increased" = pushed the model toward the predicted class; "decreased" = argued against it.
 function buildReasonSentence(prediction, topFeatures) {
   if (!topFeatures || topFeatures.length === 0) {
     return `Classified as ${prediction} — no feature attribution available for this row.`;
@@ -147,9 +138,7 @@ function renderExplanationBars(containerId, topFeatures) {
   container.appendChild(legend);
 }
 
-// ============================================================
-// BATCH ANALYSIS
-// ============================================================
+
 let batchFile = null;
 
 wireDropzone("batchDropzone", "batchFileInput", "batchFileName", (file) => {
@@ -250,9 +239,6 @@ function renderChart(containerId, summary, total) {
   });
 }
 
-// ============================================================
-// LIVE ATTACK SIMULATION
-// ============================================================
 let liveFile = null;
 let liveSessionId = null;
 let liveTimer = null;
